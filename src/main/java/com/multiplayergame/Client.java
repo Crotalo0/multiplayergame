@@ -14,24 +14,48 @@ public class Client {
 
   public static void main(String[] args) {
 
-    String serverAddress = "192.168.1.88"; // Change to server IP if needed
-    int port = 6666; // Set the port number you want to use
+    String serverAddress = "192.168.1.88";
+    int port = 6666;
 
     try (Socket socket = new Socket(serverAddress, port);
-         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-         PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+        BufferedReader serverIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter serverOut = new PrintWriter(socket.getOutputStream(), true);
+
+        BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+        PrintWriter userOut = new PrintWriter(socket.getOutputStream(), true)) {
 
       LOG.info("Connected to server at '{}:{}'", serverAddress, port);
-
-      // Read input from the console and send it to the server
+//      String line;
+//      LOG.info("Input now something...");
+//      while ((line = reader.readLine()) != null) {
+//        out.println(line);
+//        if (line.equalsIgnoreCase("quit")) {
+//          break;
+//        }
+//      }
+      Thread serverListener = new Thread(() -> {
+        try {
+          String line;
+          while ((line = serverIn.readLine()) != null) {
+            System.out.println(line);
+          }
+        } catch (IOException e) {
+          System.err.println("Error reading from server: " + e.getMessage());
+        }
+      });
+      serverListener.start();
       String line;
-      LOG.info("Input now something...");
-      while ((line = reader.readLine()) != null) {
-        out.println(line);
+      while ((line = userIn.readLine()) != null) {
+        serverOut.println(line);
         if (line.equalsIgnoreCase("quit")) {
           break;
         }
       }
+
+      // Close the socket when done
+      socket.close();
+
     } catch (IOException e) {
       LOG.error("Client error: {}", e.getMessage());
     }
