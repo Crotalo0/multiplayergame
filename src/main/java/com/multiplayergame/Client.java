@@ -14,7 +14,7 @@ public class Client {
 
   public static void main(String[] args) {
 
-    String serverAddress = "localhost"; // Change to server IP if needed
+    String serverAddress = "192.168.1.88"; // Change to server IP if needed
     int port = 6666; // Set the port number you want to use
 
     try (Socket socket = new Socket(serverAddress, port);
