@@ -48,14 +48,14 @@ public class Server {
   }
 
   private void handleClient(Socket clientSocket) {
-    try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+    try (BufferedReader in = new BufferedReader(
+        new InputStreamReader(clientSocket.getInputStream()))) {
       String line;
       PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
       while ((line = in.readLine()) != null) {
         LOG.info("Received: {}", line);
         out.println("Server received: " + line);
-
-        if (line.equalsIgnoreCase("quit")) {
+        if ("quit".equalsIgnoreCase(line)) {
           closeAllConnections();
           break;
         }
