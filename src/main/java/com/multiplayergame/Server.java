@@ -17,6 +17,9 @@ public class Server {
   private final ServerSocket serverSocket;
   private final List<Socket> clients = new ArrayList<>();
 
+  // temp
+  int counterName = 0;
+
   public Server(int port) throws IOException {
     this.serverSocket = new ServerSocket(port);
     LOG.info("Server started on port: {}", port);
@@ -38,7 +41,8 @@ public class Server {
         Socket clientSocket = serverSocket.accept();
         clients.add(clientSocket);
         LOG.info("Client connected: {}", clientSocket.getInetAddress());
-        new Thread(() -> handleClient(clientSocket)).start();
+        String newName = newName();
+        new Thread(() -> handleClient(clientSocket, newName)).start();
       }
     } catch (IOException e) {
       LOG.error("Server exception: {}", e.getMessage());
@@ -47,13 +51,20 @@ public class Server {
     }
   }
 
-  private void handleClient(Socket clientSocket) {
+  private String newName() {
+    // temp
+    String name = "client" + counterName;
+    counterName++;
+    return name;
+  }
+
+  private void handleClient(Socket clientSocket, String name) {
     try (BufferedReader in = new BufferedReader(
         new InputStreamReader(clientSocket.getInputStream()))) {
       String line;
       PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
       while ((line = in.readLine()) != null) {
-        LOG.info("Received: {}", line);
+        LOG.info("Received from {}: {}", name, line);
         out.println("Server received: " + line);
         if ("quit".equalsIgnoreCase(line)) {
           closeAllConnections();
