@@ -38,13 +38,14 @@ public class Client {
         try {
           String line;
           while ((line = serverIn.readLine()) != null) {
-            System.out.println(line);
+            LOG.info(line);
           }
         } catch (IOException e) {
-          System.err.println("Error reading from server: " + e.getMessage());
+          LOG.error("Error reading from server: {}", e.getMessage());
         }
       });
       serverListener.start();
+
       String line;
       while ((line = userIn.readLine()) != null) {
         serverOut.println(line);
@@ -52,9 +53,6 @@ public class Client {
           break;
         }
       }
-
-      // Close the socket when done
-      socket.close();
 
     } catch (IOException e) {
       LOG.error("Client error: {}", e.getMessage());
