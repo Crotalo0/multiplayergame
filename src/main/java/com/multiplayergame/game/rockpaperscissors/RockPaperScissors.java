@@ -7,8 +7,11 @@ public class RockPaperScissors {
     PAPER,
     SCISSORS
   }
-  public static String determineOutcome(Choice player1Choice, Choice player2Choice) {
+  public static String determineOutcome(String player1, String player2) {
     String[] win = new String[] {"player 1 wins", "player 2 wins"};
+
+    Choice player1Choice = Choice.valueOf(player1);
+    Choice player2Choice = Choice.valueOf(player2);
 
     if (player1Choice == player2Choice) {
       return "Tie";

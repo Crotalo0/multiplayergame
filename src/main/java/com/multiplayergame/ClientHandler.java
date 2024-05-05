@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import com.multiplayergame.game.rockpaperscissors.RockPaperScissors;
+import com.multiplayergame.game.rockpaperscissors.RockPaperScissors.Choice;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +40,12 @@ class ClientHandler implements Runnable {
           throw new IOException("Other client is closed");
         }
         partnerOut.println("Partner: " + message);
-      }
-      // game logic
-      RockPaperScissors.Choice playerChoice = RockPaperScissors.Choice.valueOf(message);
-      RockPaperScissors.Choice partnerChoice = RockPaperScissors.Choice.valueOf(partnerIn.readLine());
-      String outcome = RockPaperScissors.determineOutcome(playerChoice, partnerChoice);
 
-      LOG.info("Outcome: {}", outcome);
+        String partnerChoice = partnerIn.readLine();
+        String outcome = RockPaperScissors.determineOutcome(message, partnerChoice);
+        partnerOut.println("Outcome: " + outcome);
+        LOG.info("Outcome.z: {}", outcome);
+      }
 
     } catch (IOException e) {
       LOG.error("IOException in client handler: {}", e.getMessage());
