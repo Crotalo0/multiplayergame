@@ -34,19 +34,11 @@ class ClientHandler implements Runnable {
   public void run() {
     partnerOut.println("You have been matched with a partner. Enjoy your session!");
     try {
-      String message;
-      while ((message = in.readLine()) != null) {
-        if ("quit".equals(message)) {
-          throw new IOException("Other client is closed");
-        }
-        partnerOut.println("Partner: " + message);
-
-        String partnerChoice = partnerIn.readLine();
-        String outcome = RockPaperScissors.determineOutcome(message, partnerChoice);
-        partnerOut.println("Outcome: " + outcome);
-        LOG.info("Outcome.z: {}", outcome);
+      String message = in.readLine();
+      if ("quit".equals(message)) {
+        throw new IOException("Other client is closed");
       }
-
+        partnerOut.println("Partner: " + message);
     } catch (IOException e) {
       LOG.error("IOException in client handler: {}", e.getMessage());
     } finally {
@@ -60,4 +52,5 @@ class ClientHandler implements Runnable {
       }
     }
   }
+
 }
