@@ -38,7 +38,7 @@ public class Client {
                   String line;
                   while ((line = serverIn.readLine()) != null) {
                     if (line.equalsIgnoreCase("partner disconnected")) {
-                      System.out.println("The other person has disconnected.");
+                      LOG.info("The other person has disconnected.");
                       // Perform additional handling if necessary (e.g., close connection, exit,
                       // etc.)
                       System.exit(0);
