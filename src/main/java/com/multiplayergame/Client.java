@@ -1,10 +1,8 @@
 package com.multiplayergame;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,43 +12,52 @@ public class Client {
 
   public static void main(String[] args) {
 
-    String serverAddress = "192.168.1.88";
-    int port = 6666;
+    Properties properties = new Properties();
+    try (InputStream inputStream =
+        Client.class.getClassLoader().getResourceAsStream("application.properties")) {
+      properties.load(inputStream);
+    } catch (IOException e) {
+      LOG.error("Error loading properties file: {}", e.getMessage());
+      return;
+    }
+
+    String serverAddress = properties.getProperty("serverIp");
+    int port = Integer.parseInt(properties.getProperty("serverPort"));
 
     try (Socket socket = new Socket(serverAddress, port);
-
-        BufferedReader serverIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedReader serverIn =
+            new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter serverOut = new PrintWriter(socket.getOutputStream(), true);
-
-        BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
-        PrintWriter userOut = new PrintWriter(socket.getOutputStream(), true)) {
+        BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in))) {
 
       LOG.info("Connected to server at '{}:{}'", serverAddress, port);
-//      String line;
-//      LOG.info("Input now something...");
-//      while ((line = reader.readLine()) != null) {
-//        out.println(line);
-//        if (line.equalsIgnoreCase("quit")) {
-//          break;
-//        }
-//      }
-      Thread serverListener = new Thread(() -> {
-        try {
-          String line;
-          while ((line = serverIn.readLine()) != null) {
-            LOG.info(line);
-          }
-        } catch (IOException e) {
-          LOG.error("Error reading from server: {}", e.getMessage());
-        }
-      });
+      Thread serverListener =
+          new Thread(
+              () -> {
+                try {
+                  String line;
+                  while ((line = serverIn.readLine()) != null) {
+                    if (line.equalsIgnoreCase("partner disconnected")) {
+                      System.out.println("The other person has disconnected.");
+                      // Perform additional handling if necessary (e.g., close connection, exit,
+                      // etc.)
+                      System.exit(0);
+                    }
+                    LOG.info(line);
+                  }
+
+                } catch (IOException e) {
+                  LOG.error("Error reading from server: {}", e.getMessage());
+                }
+              });
       serverListener.start();
 
       String line;
       while ((line = userIn.readLine()) != null) {
         serverOut.println(line);
         if (line.equalsIgnoreCase("quit")) {
-          break;
+          LOG.info("Quitting...");
+          System.exit(0);
         }
       }
 

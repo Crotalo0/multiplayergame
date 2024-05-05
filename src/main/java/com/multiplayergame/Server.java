@@ -1,11 +1,9 @@
 package com.multiplayergame;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
@@ -15,9 +13,9 @@ public class Server {
   private static final Logger LOG = LoggerFactory.getLogger(Server.class);
   private final ServerSocket serverSocket;
   private final Object queueLock = new Object();
+  private final Queue<Socket> clients = new ConcurrentLinkedQueue<>();
   // temp
   int counterName = 0;
-  private final Queue<Socket> clients = new ConcurrentLinkedQueue<>();
 
   public Server(int port) throws IOException {
     this.serverSocket = new ServerSocket(port);
@@ -25,7 +23,14 @@ public class Server {
   }
 
   public static void main(String[] args) {
-    int port = 6666;
+    Properties properties = new Properties();
+    try (InputStream inputStream = Client.class.getClassLoader().getResourceAsStream("application.properties")) {
+      properties.load(inputStream);
+    } catch (IOException e) {
+      LOG.error("Error loading properties file: {}", e.getMessage());
+      return;
+    }
+    int port = Integer.parseInt(properties.getProperty("serverPort"));
     try {
       Server server = new Server(port);
       server.start();
@@ -40,10 +45,7 @@ public class Server {
         Socket clientSocket = serverSocket.accept();
         clients.add(clientSocket);
         LOG.info("Client connected: {}", clientSocket.getInetAddress());
-//        String newName = newName();
-//        new Thread(() -> handleClient(clientSocket, newName)).start();
         matchClients();
-
       }
     } catch (IOException e) {
       LOG.error("Server exception: {}", e.getMessage());
@@ -67,64 +69,33 @@ public class Server {
   }
 
   private void handleMatchedClients(Socket client1, Socket client2) {
-    try (BufferedReader in1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
-         PrintWriter out1 = new PrintWriter(client1.getOutputStream(), true);
-         BufferedReader in2 = new BufferedReader(new InputStreamReader(client2.getInputStream()));
-         PrintWriter out2 = new PrintWriter(client2.getOutputStream(), true)) {
-      out1.println("You have been matched with a partner. Enjoy your session!");
-      out2.println("You have been matched with a partner. Enjoy your session!");
+    try {
+      Thread handler1 = new Thread(new ClientHandler(client1, client2));
+      Thread handler2 = new Thread(new ClientHandler(client2, client1));
 
-      while (true) {
-        if (in1.ready()) {
-          String message = in1.readLine();
-          if (message != null) {
-            out2.println("Partner: " + message);
-          }
-        }
+      handler1.start();
+      handler2.start();
 
-        if (in2.ready()) {
-          String message = in2.readLine();
-          if (message != null) {
-            out1.println("Partner: " + message);
-          }
-        }
-      }
-    } catch (IOException e) {
-      LOG.error("Error in matched clients handler: {}", e.getMessage());
+      handler1.join();
+      handler2.join();
+
+    } catch (IOException | InterruptedException e) {
+      LOG.error("Error handling matched clients: {}", e.getMessage());
+      Thread.currentThread().interrupt();
     } finally {
       try {
-        client1.close();
-        client2.close();
+        if (client1 != null && !client1.isClosed()) {
+          client1.close();
+        }
+        if (client2 != null && !client2.isClosed()) {
+          client2.close();
+        }
       } catch (IOException e) {
         LOG.error("Error closing client connections: {}", e.getMessage());
       }
     }
   }
 
-  private String newName() {
-    // temp
-    String name = "client" + counterName;
-    counterName++;
-    return name;
-  }
-
-  private void handleClient(Socket clientSocket, String name) {
-    try (BufferedReader in = new BufferedReader(
-        new InputStreamReader(clientSocket.getInputStream()))) {
-      String line;
-      PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-      while ((line = in.readLine()) != null) {
-        LOG.info("Received from {}: {}", name, line);
-        out.println("Server received: " + line);
-        if ("quit".equalsIgnoreCase(line)) {
-          closeAllConnections();
-          break;
-        }
-      }
-    } catch (IOException e) {
-      LOG.error("Client handler exception: {}", e.getMessage());
-    }
-  }
 
   private void closeAllConnections() {
     LOG.info("Closing all connections...");
