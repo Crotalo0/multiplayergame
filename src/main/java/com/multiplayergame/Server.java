@@ -14,8 +14,6 @@ public class Server {
   private final ServerSocket serverSocket;
   private final Object queueLock = new Object();
   private final Queue<Socket> clients = new ConcurrentLinkedQueue<>();
-  // temp
-  int counterName = 0;
 
   public Server(int port) throws IOException {
     this.serverSocket = new ServerSocket(port);
@@ -23,14 +21,9 @@ public class Server {
   }
 
   public static void main(String[] args) {
-    Properties properties = new Properties();
-    try (InputStream inputStream = Client.class.getClassLoader().getResourceAsStream("application.properties")) {
-      properties.load(inputStream);
-    } catch (IOException e) {
-      LOG.error("Error loading properties file: {}", e.getMessage());
-      return;
-    }
+    Properties properties = Utils.getProperties();
     int port = Integer.parseInt(properties.getProperty("serverPort"));
+
     try {
       Server server = new Server(port);
       server.start();
@@ -61,7 +54,8 @@ public class Server {
         Socket client2 = clients.poll();
 
         if (client1 != null && client2 != null) {
-          LOG.info("Matched clients: {} and {}", client1.getInetAddress(), client2.getInetAddress());
+          LOG.info(
+              "Matched clients: {} and {}", client1.getInetAddress(), client2.getInetAddress());
           new Thread(() -> handleMatchedClients(client1, client2)).start();
         }
       }
@@ -95,7 +89,6 @@ public class Server {
       }
     }
   }
-
 
   private void closeAllConnections() {
     LOG.info("Closing all connections...");

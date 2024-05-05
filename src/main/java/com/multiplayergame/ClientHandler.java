@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import com.multiplayergame.game.rockpaperscissors.RockPaperScissors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,15 +14,16 @@ class ClientHandler implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(ClientHandler.class);
   private final Socket clientSocket;
   private final BufferedReader in;
+  private final BufferedReader partnerIn;
   private final Socket partnerSocket;
   private final PrintWriter partnerOut;
   private final PrintWriter clientOut;
 
   public ClientHandler(Socket clientSocket, Socket partnerSocket) throws IOException {
-
     this.clientSocket = clientSocket;
     this.partnerSocket = partnerSocket;
     this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    this.partnerIn = new BufferedReader(new InputStreamReader(partnerSocket.getInputStream()));
     this.partnerOut = new PrintWriter(partnerSocket.getOutputStream(), true);
     this.clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
   }
@@ -36,6 +39,13 @@ class ClientHandler implements Runnable {
         }
         partnerOut.println("Partner: " + message);
       }
+      // game logic
+      RockPaperScissors.Choice playerChoice = RockPaperScissors.Choice.valueOf(message);
+      RockPaperScissors.Choice partnerChoice = RockPaperScissors.Choice.valueOf(partnerIn.readLine());
+      String outcome = RockPaperScissors.determineOutcome(playerChoice, partnerChoice);
+
+      LOG.info("Outcome: {}", outcome);
+
     } catch (IOException e) {
       LOG.error("IOException in client handler: {}", e.getMessage());
     } finally {
@@ -50,4 +60,3 @@ class ClientHandler implements Runnable {
     }
   }
 }
-
