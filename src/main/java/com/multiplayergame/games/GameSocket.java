@@ -1,4 +1,4 @@
-package com.multiplayergame.game;
+package com.multiplayergame.games;
 
 import java.io.BufferedReader;
 import java.io.IOException;

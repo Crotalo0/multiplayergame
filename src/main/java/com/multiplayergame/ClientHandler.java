@@ -6,9 +6,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import com.multiplayergame.game.rockpaperscissors.RockPaperScissors;
-import com.multiplayergame.game.rockpaperscissors.RockPaperScissors.Choice;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
-package com.multiplayergame.game.tictactoe;
+package com.multiplayergame.games.tictactoe;
 
-import com.multiplayergame.game.GameSocket;
+import com.multiplayergame.games.GameSocket;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;

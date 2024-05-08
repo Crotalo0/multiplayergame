@@ -1,7 +1,7 @@
 package com.multiplayergame;
 
-import com.multiplayergame.game.rockpaperscissors.RockPaperScissors;
-import com.multiplayergame.game.tictactoe.TicTacToe;
+import com.multiplayergame.games.rockpaperscissors.RockPaperScissors;
+import com.multiplayergame.games.tictactoe.TicTacToe;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
