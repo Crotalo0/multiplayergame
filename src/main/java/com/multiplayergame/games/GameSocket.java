@@ -19,7 +19,7 @@ public abstract class GameSocket {
   private Socket client1;
   private Socket client2;
 
-  public GameSocket(Socket client1, Socket client2) throws IOException {
+  protected GameSocket(Socket client1, Socket client2) throws IOException {
     this.client1 = client1;
     this.client2 = client2;
     this.in1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
