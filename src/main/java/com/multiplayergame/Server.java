@@ -73,6 +73,8 @@ public class Server {
       }
     } catch (IOException e) {
       LOG.error("Server exception: {}", e.getMessage());
+    } finally {
+      closeAllConnections();
     }
   }
 
