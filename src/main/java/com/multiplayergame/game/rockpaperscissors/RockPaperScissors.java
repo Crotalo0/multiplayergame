@@ -1,26 +1,24 @@
 package com.multiplayergame.game.rockpaperscissors;
 
+import com.multiplayergame.game.GameSocket;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
-public class RockPaperScissors {
+@Getter
+@Setter
+public class RockPaperScissors extends GameSocket {
 
-  public enum Choice {
-    ROCK,
-    PAPER,
-    SCISSORS
-  }
+  private static final Map<String, Integer> outcomePointsMap = new HashMap<>();
+  private static final Map<String, String> outcomeResultMap = new HashMap<>();
 
-  private static final Map<String, Integer> outcomePointsMap;
-  private static final Map<String, String> outcomeResultMap;
-
-  static {
-    String player1win = "Player 1 wins";
-    String player2win = "Player 2 wins";
-
-    outcomePointsMap = new HashMap<>();
-    outcomeResultMap = new HashMap<>();
-
+  public RockPaperScissors(Socket client1, Socket client2) throws IOException {
+    super(client1, client2);
     // Define the outcomes for each combination
     outcomePointsMap.put("ROCK_SCISSORS", 0);
     outcomePointsMap.put("ROCK_PAPER", 1);
@@ -29,30 +27,71 @@ public class RockPaperScissors {
     outcomePointsMap.put("SCISSORS_PAPER", 0);
     outcomePointsMap.put("SCISSORS_ROCK", 1);
 
-    outcomeResultMap.put("ROCK_SCISSORS", player1win);
-    outcomeResultMap.put("ROCK_PAPER", player2win);
-    outcomeResultMap.put("PAPER_ROCK", player1win);
-    outcomeResultMap.put("PAPER_SCISSORS", player2win);
-    outcomeResultMap.put("SCISSORS_PAPER", player1win);
-    outcomeResultMap.put("SCISSORS_ROCK", player2win);
+    outcomeResultMap.put("ROCK_SCISSORS", PLAYER_1_WINS);
+    outcomeResultMap.put("ROCK_PAPER", PLAYER_2_WINS);
+    outcomeResultMap.put("PAPER_ROCK", PLAYER_1_WINS);
+    outcomeResultMap.put("PAPER_SCISSORS", PLAYER_2_WINS);
+    outcomeResultMap.put("SCISSORS_PAPER", PLAYER_1_WINS);
+    outcomeResultMap.put("SCISSORS_ROCK", PLAYER_2_WINS);
   }
 
-  public static String determineOutcome(String player1Choice, String player2Choice, int[] points) {
+  public String determineOutcome(String player1Choice, String player2Choice, int[] points) {
     if (player1Choice.equalsIgnoreCase(player2Choice)) {
       return "Tie";
     }
-
-    // Concatenate choices to form the key for the map
     String key = player1Choice.toUpperCase() + "_" + player2Choice.toUpperCase();
-
-    // Get the outcome from the map
     int winningPlayer = outcomePointsMap.getOrDefault(key, -1);
     String result = outcomeResultMap.getOrDefault(key, "Invalid input");
 
-    // Update points based on the winning player
     if (winningPlayer != -1) {
       points[winningPlayer]++;
     }
     return result;
+  }
+  public boolean playRound() throws IOException {
+    out2.println("Wait for player 1");
+    String choice1 = getPlayerChoice(in1, out1);
+    if (choice1 == null) {
+      out2.println("Player 1 has quit the session. Restart the client.");
+      return false;
+    }
+    out1.println("Wait for player 2");
+    String choice2 = getPlayerChoice(in2, out2);
+    if (choice2 == null) {
+      out1.println("Player 2 has quit the session. Restart the client");
+      return false;
+    }
+    String outcome = determineOutcome(choice1, choice2, points);
+    sendMessageToBothClients("Game outcome: " + outcome);
+    sendMessageToBothClients("POINTS: player1->" + points[0] + " - player2->" + points[1]);
+    return true;
+  }
+
+  private String getPlayerChoice(BufferedReader in, PrintWriter out) throws IOException {
+    while (true) {
+      out.println("Input: ");
+      String choice = in.readLine();
+
+      if (choice.equalsIgnoreCase("QUIT")) {
+        out.println("You chose to quit. Ending the session.");
+        return null;
+      }
+
+      choice = choice.toUpperCase();
+
+      try {
+        RockPaperScissors.Choice.valueOf(choice);
+        out.println("You said: " + choice);
+        return choice;
+      } catch (IllegalArgumentException e) {
+        out.println("Invalid input. Please choose ROCK, PAPER, or SCISSORS.");
+      }
+    }
+  }
+
+  public enum Choice {
+    ROCK,
+    PAPER,
+    SCISSORS
   }
 }

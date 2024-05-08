@@ -38,7 +38,7 @@ class ClientHandler implements Runnable {
       if ("quit".equals(message)) {
         throw new IOException("Other client is closed");
       }
-        partnerOut.println("Partner: " + message);
+      partnerOut.println("Partner: " + message);
     } catch (IOException e) {
       LOG.error("IOException in client handler: {}", e.getMessage());
     } finally {
@@ -52,5 +52,4 @@ class ClientHandler implements Runnable {
       }
     }
   }
-
 }
