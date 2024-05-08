@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TicTacToe extends GameSocket {
+  private final List<List<String>> grid;
   List<String> choices = Arrays.asList(
       "00","01","02",
       "10", "11", "12",
       "20", "21", "22");
-  private final List<List<String>> grid;
 
   public TicTacToe(Socket client1, Socket client2) throws IOException {
     super(client1, client2);

@@ -48,6 +48,7 @@ public class RockPaperScissors extends GameSocket {
     }
     return result;
   }
+
   public boolean playRound() throws IOException {
     out2.println("Wait for player 1");
     String choice1 = getPlayerChoice(in1, out1);

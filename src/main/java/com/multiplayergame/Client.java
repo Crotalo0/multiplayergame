@@ -28,6 +28,7 @@ public class Client {
     int port = Integer.parseInt(properties.getProperty("serverPort"));
 
     Client client = new Client(serverAddress, port);
+
     client.clientLogic();
   }
 

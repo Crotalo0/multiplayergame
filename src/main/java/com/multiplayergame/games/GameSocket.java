@@ -27,6 +27,7 @@ public abstract class GameSocket {
     this.in2 = new BufferedReader(new InputStreamReader(client2.getInputStream()));
     this.out2 = new PrintWriter(client2.getOutputStream(), true);
   }
+
   public abstract boolean playRound() throws IOException;
 
   protected void sendMessageToBothClients(String message) {
