@@ -13,10 +13,12 @@ import org.slf4j.LoggerFactory;
 public class Server {
   private static final Logger LOG = LoggerFactory.getLogger(Server.class);
   private final ServerSocket serverSocket;
-  private final Object queueLock = new Object();
   private final Queue<Socket> clients = new ConcurrentLinkedQueue<>();
 
   // specific queues
+  private final Object queueLockRps = new Object();
+  private final Object queueLockTic = new Object();
+  private final Object queueLockChat = new Object();
   private final Queue<Socket> clientsRps = new ConcurrentLinkedQueue<>();
   private final Queue<Socket> clientsTic = new ConcurrentLinkedQueue<>();
   private final Queue<Socket> clientsChat = new ConcurrentLinkedQueue<>();
@@ -42,34 +44,10 @@ public class Server {
     try {
       while (true) {
         Socket clientSocket = serverSocket.accept();
-        clients.add(clientSocket);
         LOG.info("Client connected: {}", clientSocket.getInetAddress());
 
-        while (!clients.isEmpty()) {
-          // TODO: add input logic
-          Socket client = clients.poll();
-          PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-          out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
-          BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-          String s = in.readLine();
-          switch (s) {
-            case "1":
-              clientsRps.add(client);
-              matchClientsRps(clientsRps);
-              break;
-            case "2":
-              clientsTic.add(client);
-              matchClientsTic(clientsTic);
-              break;
-            case "3":
-              clientsChat.add(client);
-              matchClientsChat(clientsChat);
-              break;
-            default:
-              LOG.info("Not a valid statement");
-              break;
-          }
-        }
+        // Create a new thread to handle the client connection
+        new Thread(() -> handleClientConnection(clientSocket)).start();
       }
     } catch (IOException e) {
       LOG.error("Server exception: {}", e.getMessage());
@@ -78,8 +56,42 @@ public class Server {
     }
   }
 
+  private void handleClientConnection(Socket clientSocket) {
+    try {
+        // Present choices to the client
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        String s = in.readLine();
+
+        switch (s) {
+          case "1":
+            clientsRps.add(clientSocket);
+            out.println("Entered queue for Rock paper scissors. player in queue: " + clientsRps.size());
+            matchClientsRps(clientsRps);
+            break;
+          case "2":
+            clientsTic.add(clientSocket);
+            out.println("Entered queue for Tic tac toe. player in queue: " + clientsTic.size());
+            matchClientsTic(clientsTic);
+            break;
+          case "3":
+            clientsChat.add(clientSocket);
+            out.println("Entered queue for Random chat. player in queue: " + clientsChat.size());
+            matchClientsChat(clientsChat);
+            break;
+          default:
+            LOG.info("Not a valid statement");
+            break;
+        }
+    } catch (IOException e) {
+      LOG.error("Error handling client connection: {}", e.getMessage());
+    }
+  }
+
   private void matchClientsRps(Queue<Socket> queue) {
-    synchronized (queueLock) {
+    synchronized (queueLockRps) {
       if (queue.size() >= 2) {
         Socket client1 = queue.poll();
         Socket client2 = queue.poll();
@@ -94,7 +106,7 @@ public class Server {
   }
 
   private void matchClientsTic(Queue<Socket> queue) {
-    synchronized (queueLock) {
+    synchronized (queueLockTic) {
       if (queue.size() >= 2) {
         Socket client1 = queue.poll();
         Socket client2 = queue.poll();
@@ -109,7 +121,7 @@ public class Server {
   }
 
   private void matchClientsChat(Queue<Socket> queue) {
-    synchronized (queueLock) {
+    synchronized (queueLockChat) {
       if (queue.size() >= 2) {
         Socket client1 = queue.poll();
         Socket client2 = queue.poll();
@@ -129,7 +141,7 @@ public class Server {
       game.getOut1().println("You have been matched with a partner. You are player 1.");
       game.getOut2().println("You have been matched with a partner. You are player 2.");
 
-      // After one round, make that player 1 gets X and plays for second
+      //TODO: After one round, make that player 1 gets X and plays for second
       while (true) {
         if (!game.playRound()) {
           break;

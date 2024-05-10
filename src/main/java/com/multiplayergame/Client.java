@@ -58,7 +58,9 @@ public class Client {
     while ((line = userIn.readLine()) != null) {
       serverOut.println(line);
       if (line.equalsIgnoreCase("quit")) {
+        serverOut.println("partner disconnected");
         LOG.info("Quitting...");
+
         System.exit(0);
       }
     }

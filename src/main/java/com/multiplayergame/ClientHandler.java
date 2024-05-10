@@ -10,42 +10,44 @@ import org.slf4j.LoggerFactory;
 
 class ClientHandler implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(ClientHandler.class);
-  private final Socket clientSocket;
-  private final BufferedReader in;
+  private final Socket mainSocket;
+  private final BufferedReader mainIn;
   private final BufferedReader partnerIn;
   private final Socket partnerSocket;
   private final PrintWriter partnerOut;
-  private final PrintWriter clientOut;
 
-  public ClientHandler(Socket clientSocket, Socket partnerSocket) throws IOException {
-    this.clientSocket = clientSocket;
+  public ClientHandler(Socket mainSocket, Socket partnerSocket) throws IOException {
+
+    this.mainSocket = mainSocket;
     this.partnerSocket = partnerSocket;
-    this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+    this.mainIn = new BufferedReader(new InputStreamReader(mainSocket.getInputStream()));
     this.partnerIn = new BufferedReader(new InputStreamReader(partnerSocket.getInputStream()));
     this.partnerOut = new PrintWriter(partnerSocket.getOutputStream(), true);
-    this.clientOut = new PrintWriter(clientSocket.getOutputStream(), true);
   }
 
   @Override
   public void run() {
     partnerOut.println("You have been matched with a partner. Enjoy your session!");
     try {
-      String message = in.readLine();
-      if ("quit".equals(message)) {
-        throw new IOException("Other client is closed");
-      }
-      partnerOut.println("Partner: " + message);
-    } catch (IOException e) {
-      LOG.error("IOException in client handler: {}", e.getMessage());
-    } finally {
-      try {
-        if (!clientSocket.isClosed()) {
+      String message;
+      while ((message = mainIn.readLine()) != null) {
+        if ("quit".equals(message)) {
+          LOG.error("Partner has left the chat. Restart the client");
           partnerOut.println("partner disconnected");
-          clientSocket.close();
+          throw new IOException("One client is closed");
         }
-      } catch (IOException e) {
-        LOG.error("Error closing client connection: {}", e.getMessage());
+        partnerOut.println("Partner: " + message);
       }
+
+    } catch (IOException e) {
+      LOG.error(
+          "Error handling client connection between '{} - {}': {}",
+          mainSocket.getInetAddress(),
+          partnerSocket.getInetAddress(),
+          e.getMessage());
+    } finally {
+      Utils.cleanUpConnections(mainSocket, partnerSocket);
     }
   }
 }
