@@ -58,37 +58,40 @@ public class Server {
 
   private void handleClientConnection(Socket clientSocket) {
     try {
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
+      PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+      out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        String s = in.readLine();
+      BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+      String s = in.readLine();
 
-        switch (s) {
-          case "1":
-            clientsRps.add(clientSocket);
-            out.println("Entered queue for Rock paper scissors. player in queue: " + clientsRps.size());
-            matchClients(clientsRps, queueLockRps, this::handleMatchedClientsRockPaperScissors);
-            break;
-          case "2":
-            clientsTic.add(clientSocket);
-            out.println("Entered queue for Tic tac toe. player in queue: " + clientsTic.size());
-            matchClients(clientsTic, queueLockTic, this::handleMatchedClientsTicTacToe);
-            break;
-          case "3":
-            clientsChat.add(clientSocket);
-            out.println("Entered queue for Random chat. player in queue: " + clientsChat.size());
-            matchClients(clientsChat, queueLockChat, this::handleMatchedClientsChat);
-            break;
-          default:
-            LOG.info("Not a valid statement");
-            break;
-        }
+      switch (s) {
+        case "1":
+          clientsRps.add(clientSocket);
+          out.println(
+              "Entered queue for Rock paper scissors. player in queue: " + clientsRps.size());
+          matchClients(clientsRps, queueLockRps, this::handleMatchedClientsRockPaperScissors);
+          break;
+        case "2":
+          clientsTic.add(clientSocket);
+          out.println("Entered queue for Tic tac toe. player in queue: " + clientsTic.size());
+          matchClients(clientsTic, queueLockTic, this::handleMatchedClientsTicTacToe);
+          break;
+        case "3":
+          clientsChat.add(clientSocket);
+          out.println("Entered queue for Random chat. player in queue: " + clientsChat.size());
+          matchClients(clientsChat, queueLockChat, this::handleMatchedClientsChat);
+          break;
+        default:
+          LOG.info("Not a valid statement");
+          break;
+      }
     } catch (IOException e) {
       LOG.error("Error handling client connection: {}", e.getMessage());
     }
   }
-  private void matchClients(Queue<Socket> queue, Object queueLock, BiConsumer<Socket, Socket> handler) {
+
+  private void matchClients(
+      Queue<Socket> queue, Object queueLock, BiConsumer<Socket, Socket> handler) {
 
     synchronized (queueLock) {
       if (queue.size() >= 2) {
@@ -123,6 +126,7 @@ public class Server {
       Utils.cleanUpConnections(client1, client2);
     }
   }
+
   private void handleMatchedClientsTicTacToe(Socket client1, Socket client2) {
     try {
       handleGameMatchedClients(client1, client2, new TicTacToe(client1, client2));
@@ -130,6 +134,7 @@ public class Server {
       throw new IllegalArgumentException(e);
     }
   }
+
   private void handleMatchedClientsRockPaperScissors(Socket client1, Socket client2) {
     try {
       handleGameMatchedClients(client1, client2, new RockPaperScissors(client1, client2));
