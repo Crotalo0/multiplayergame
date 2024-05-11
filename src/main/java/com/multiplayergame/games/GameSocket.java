@@ -6,18 +6,22 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Data
 public abstract class GameSocket {
-  protected static final String PLAYER_1_WINS = "Player 1 wins";
-  protected static final String PLAYER_2_WINS = "Player 2 wins";
+  protected static final Logger LOG = LoggerFactory.getLogger(GameSocket.class);
+  protected static final String PLAYER_1_WINS = "Player1 wins";
+  protected static final String PLAYER_2_WINS = "Player2 wins";
+  protected static final String TIE = "There is a tie";
   protected final BufferedReader in1;
   protected final PrintWriter out1;
   protected final BufferedReader in2;
   protected final PrintWriter out2;
   protected int[] points = new int[] {0, 0};
-  private Socket client1;
-  private Socket client2;
+  protected Socket client1;
+  protected Socket client2;
 
   protected GameSocket(Socket client1, Socket client2) throws IOException {
     this.client1 = client1;
@@ -28,7 +32,7 @@ public abstract class GameSocket {
     this.out2 = new PrintWriter(client2.getOutputStream(), true);
   }
 
-  public abstract boolean playRound() throws IOException;
+  public abstract boolean gameLoop() throws IOException;
 
   protected void sendMessageToBothClients(String message) {
     out1.println(message);
