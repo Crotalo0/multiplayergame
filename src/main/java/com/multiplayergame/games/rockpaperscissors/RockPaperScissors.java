@@ -63,8 +63,9 @@ public class RockPaperScissors extends GameSocket {
       return true;
     }
     String outcome = determineOutcome(choice1, choice2, points);
+    sendMessageToBothClients(choice1 + " vs " + choice2);
     sendMessageToBothClients("Game outcome: " + outcome);
-    sendMessageToBothClients("POINTS: player1->" + points[0] + " - player2->" + points[1]);
+    sendMessageToBothClients("POINTS: player1: " + points[0] + " - player2: " + points[1]);
     return false;
   }
 
