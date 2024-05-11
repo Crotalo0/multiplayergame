@@ -153,7 +153,7 @@ public class TicTacToe extends GameSocket {
   // USER INPUT LOGIC
   protected String getPlayerChoice(BufferedReader in, PrintWriter out) throws IOException {
     while (true) {
-      out.println("Input: ");
+      out.println("Your move (Input ex.: 01 (row 0 and column 1)");
       String choice = in.readLine();
       if (choice.equalsIgnoreCase("QUIT")) {
         out.println("You chose to quit. Ending the session.");
@@ -175,7 +175,7 @@ public class TicTacToe extends GameSocket {
       return false;
     }
     String emptyCell = "_";
-    if (emptyCell.equals(getCell(posStr))) {
+    if (!emptyCell.equals(getCell(posStr))) {
       LOG.error("ERROR: occupied cell");
       return false;
     }
