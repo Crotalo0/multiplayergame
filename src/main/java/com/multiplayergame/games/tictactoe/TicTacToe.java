@@ -1,12 +1,10 @@
 package com.multiplayergame.games.tictactoe;
 
 import com.multiplayergame.games.GameSocket;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,11 +12,11 @@ import java.util.stream.Collectors;
 public class TicTacToe extends GameSocket {
 
   List<String> choices = Arrays.asList("00", "01", "02", "10", "11", "12", "20", "21", "22");
+  private String outcome;
+  private boolean error;
+  private Integer totalMoves = 0;
   private List<List<String>> grid;
   private Integer roundNumber = 1;
-  String outcome;
-  boolean error;
-  Integer totalMoves = 0;
 
   public TicTacToe(Socket client1, Socket client2) throws IOException {
     super(client1, client2);
@@ -27,7 +25,7 @@ public class TicTacToe extends GameSocket {
 
   @Override
   public boolean gameLoop() throws IOException {
-    while(true) {
+    while (true) {
       if (!playOneRound()) break;
     }
     if (!error) {
@@ -44,58 +42,58 @@ public class TicTacToe extends GameSocket {
   }
 
   private boolean playOneRound() throws IOException {
-      out1.println("You are 'O'");
-      out2.println("You are 'X'");
+    out1.println("You are 'O'");
+    out2.println("You are 'X'");
 
-      // PLAYER 1
-      String choice1 = null;
-      if (roundNumber % 2 == 0) {
-        out2.println("Wait for player1");
-        choice1 = getPlayerChoice(in1, out1);
-        if (null == choice1) {
-          out2.println("Player1 has quit the session. Restart the client.");
-          error = true;
-          return false;
-        }
-        setCell(choice1, "O");
-      } else {
-        out1.println("Wait for player2");
-        choice1 = getPlayerChoice(in2, out2);
-        if (null == choice1) {
-          out1.println("Player2 has quit the session. Restart the client.");
-          error=true;
-          return false;
-        }
-        setCell(choice1, "X");
+    // PLAYER 1
+    String choice1;
+    if (roundNumber % 2 == 0) {
+      out2.println("Wait for player1");
+      choice1 = getPlayerChoice(in1, out1);
+      if (null == choice1) {
+        out2.println("Player1 has quit the session. Restart the client.");
+        error = true;
+        return false;
       }
-      this.totalMoves++;
-      sendMessageToBothClients(gridAsString(grid));
-      if (playerWonOrTie(roundNumber)) return false;
+      setCell(choice1, "O");
+    } else {
+      out1.println("Wait for player2");
+      choice1 = getPlayerChoice(in2, out2);
+      if (null == choice1) {
+        out1.println("Player2 has quit the session. Restart the client.");
+        error = true;
+        return false;
+      }
+      setCell(choice1, "X");
+    }
+    this.totalMoves++;
+    sendMessageToBothClients(gridAsString(grid));
+    if (playerWonOrTie(roundNumber)) return false;
 
-      // PLAYER 2
-      String choice2 = null;
-      if (roundNumber % 2 == 0) {
-        out1.println("Wait for player2");
-        choice2 = getPlayerChoice(in2, out2);
-        if (null == choice2) {
-          out1.println("Player2 has quit the session. Restart the client.");
-          error = true;
-          return false;
-        }
-        setCell(choice2, "X");
-      } else {
-        out2.println("Wait for player1");
-        choice2 = getPlayerChoice(in1, out1);
-        if (null == choice2) {
-          out2.println("Player1 has quit the session. Restart the client.");
-          error=true;
-          return false;
-        }
-        setCell(choice2, "O");
+    // PLAYER 2
+    String choice2;
+    if (roundNumber % 2 == 0) {
+      out1.println("Wait for player2");
+      choice2 = getPlayerChoice(in2, out2);
+      if (null == choice2) {
+        out1.println("Player2 has quit the session. Restart the client.");
+        error = true;
+        return false;
       }
-      this.totalMoves++;
-      sendMessageToBothClients(gridAsString(grid));
-      return (!playerWonOrTie(roundNumber));
+      setCell(choice2, "X");
+    } else {
+      out2.println("Wait for player1");
+      choice2 = getPlayerChoice(in1, out1);
+      if (null == choice2) {
+        out2.println("Player1 has quit the session. Restart the client.");
+        error = true;
+        return false;
+      }
+      setCell(choice2, "O");
+    }
+    this.totalMoves++;
+    sendMessageToBothClients(gridAsString(grid));
+    return (!playerWonOrTie(roundNumber));
   }
 
   // WIN LOGIC
@@ -130,8 +128,9 @@ public class TicTacToe extends GameSocket {
                 && getCell("02").equals(getCell("11"))
                 && getCell("02").equals(getCell("20")));
 
-    return row || column || diagonal ;
+    return row || column || diagonal;
   }
+
   private boolean playerWonOrTie(Integer roundNumber) {
     Integer moveLimit = 9;
     if (checkForTris()) {
@@ -188,8 +187,7 @@ public class TicTacToe extends GameSocket {
   }
 
   // GRID UTILS
-  public static List<List<String>> createGrid() {
-    List<List<String>> grid = new ArrayList<>(3);
+  private List<List<String>> createGrid() {
     grid.add(Arrays.asList("_", "_", "_"));
     grid.add(Arrays.asList("_", "_", "_"));
     grid.add(Arrays.asList("_", "_", "_"));
