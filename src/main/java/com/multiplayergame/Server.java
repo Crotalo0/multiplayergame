@@ -1,5 +1,6 @@
 package com.multiplayergame;
 
+import com.multiplayergame.games.GameSocket;
 import com.multiplayergame.games.rockpaperscissors.RockPaperScissors;
 import com.multiplayergame.games.tictactoe.TicTacToe;
 import java.io.*;
@@ -7,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,6 @@ public class Server {
   private final ServerSocket serverSocket;
   private final Queue<Socket> clients = new ConcurrentLinkedQueue<>();
 
-  // specific queues
   private final Object queueLockRps = new Object();
   private final Object queueLockTic = new Object();
   private final Object queueLockChat = new Object();
@@ -46,7 +47,6 @@ public class Server {
         Socket clientSocket = serverSocket.accept();
         LOG.info("Client connected: {}", clientSocket.getInetAddress());
 
-        // Create a new thread to handle the client connection
         new Thread(() -> handleClientConnection(clientSocket)).start();
       }
     } catch (IOException e) {
@@ -58,7 +58,6 @@ public class Server {
 
   private void handleClientConnection(Socket clientSocket) {
     try {
-        // Present choices to the client
         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
         out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
 
@@ -69,17 +68,17 @@ public class Server {
           case "1":
             clientsRps.add(clientSocket);
             out.println("Entered queue for Rock paper scissors. player in queue: " + clientsRps.size());
-            matchClientsRps(clientsRps);
+            matchClients(clientsRps, queueLockRps, this::handleMatchedClientsRockPaperScissors);
             break;
           case "2":
             clientsTic.add(clientSocket);
             out.println("Entered queue for Tic tac toe. player in queue: " + clientsTic.size());
-            matchClientsTic(clientsTic);
+            matchClients(clientsTic, queueLockTic, this::handleMatchedClientsTicTacToe);
             break;
           case "3":
             clientsChat.add(clientSocket);
             out.println("Entered queue for Random chat. player in queue: " + clientsChat.size());
-            matchClientsChat(clientsChat);
+            matchClients(clientsChat, queueLockChat, this::handleMatchedClientsChat);
             break;
           default:
             LOG.info("Not a valid statement");
@@ -89,9 +88,9 @@ public class Server {
       LOG.error("Error handling client connection: {}", e.getMessage());
     }
   }
+  private void matchClients(Queue<Socket> queue, Object queueLock, BiConsumer<Socket, Socket> handler) {
 
-  private void matchClientsRps(Queue<Socket> queue) {
-    synchronized (queueLockRps) {
+    synchronized (queueLock) {
       if (queue.size() >= 2) {
         Socket client1 = queue.poll();
         Socket client2 = queue.poll();
@@ -99,83 +98,43 @@ public class Server {
         if (client1 != null && client2 != null) {
           LOG.info(
               "Matched clients: {} and {}", client1.getInetAddress(), client2.getInetAddress());
-          new Thread(() -> handleMatchedClientsRockPaperScissors(client1, client2)).start();
+          new Thread(() -> handler.accept(client1, client2)).start();
         }
       }
     }
   }
 
-  private void matchClientsTic(Queue<Socket> queue ) {
-    synchronized (queueLockTic) {
-      if (queue.size() >= 2) {
-        Socket client1 = queue.poll();
-        Socket client2 = queue.poll();
+  private void handleGameMatchedClients(Socket client1, Socket client2, GameSocket game) {
+    try {
+      game.getOut1().println("You have been matched with a partner. You are player 1.");
+      game.getOut2().println("You have been matched with a partner. You are player 2.");
 
-        if (client1 != null && client2 != null) {
-          LOG.info(
-              "Matched clients: {} and {}", client1.getInetAddress(), client2.getInetAddress());
-          new Thread(() -> handleMatchedClientsTicTacToe(client1, client2)).start();
+      while (true) {
+        if (game.gameLoop()) {
+          break;
         }
       }
+
+    } catch (IOException e) {
+      LOG.error("IOException in handling matched clients: {}", e.getMessage());
+      Thread.currentThread().interrupt();
+    } finally {
+      LOG.info("Game finished, connection cleared");
+      Utils.cleanUpConnections(client1, client2);
     }
   }
-
-  private void matchClientsChat(Queue<Socket> queue) {
-    synchronized (queueLockChat) {
-      if (queue.size() >= 2) {
-        Socket client1 = queue.poll();
-        Socket client2 = queue.poll();
-
-        if (client1 != null && client2 != null) {
-          LOG.info(
-              "Matched clients: {} and {}", client1.getInetAddress(), client2.getInetAddress());
-          new Thread(() -> handleMatchedClientsChat(client1, client2)).start();
-        }
-      }
-    }
-  }
-
   private void handleMatchedClientsTicTacToe(Socket client1, Socket client2) {
     try {
-      TicTacToe game = new TicTacToe(client1, client2);
-      game.getOut1().println("You have been matched with a partner. You are player 1.");
-      game.getOut2().println("You have been matched with a partner. You are player 2.");
-
-      //TODO: After one round, make that player 1 gets X and plays for second
-      while (true) {
-        if (game.gameLoop()) {
-          break;
-        }
-      }
-
+      handleGameMatchedClients(client1, client2, new TicTacToe(client1, client2));
     } catch (IOException e) {
-      LOG.error("IOException in handling matched clients: {}", e.getMessage());
-      Thread.currentThread().interrupt();
-    } finally {
-      LOG.info("Game finished, connection cleared");
-      Utils.cleanUpConnections(client1, client2);
+      throw new IllegalArgumentException(e);
     }
   }
-
   private void handleMatchedClientsRockPaperScissors(Socket client1, Socket client2) {
     try {
-      RockPaperScissors game = new RockPaperScissors(client1, client2);
-
-      game.getOut1().println("You have been matched with a partner. You are player 1.");
-      game.getOut2().println("You have been matched with a partner. You are player 2.");
-
-      while (true) {
-        if (game.gameLoop()) {
-          break;
-        }
-      }
-
+      handleGameMatchedClients(client1, client2, new RockPaperScissors(client1, client2));
     } catch (IOException e) {
-      LOG.error("IOException in handling matched clients: {}", e.getMessage());
-      Thread.currentThread().interrupt();
-    } finally {
-      LOG.info("Game finished, connection cleared");
-      Utils.cleanUpConnections(client1, client2);
+      throw new IllegalArgumentException(e);
     }
   }
 
