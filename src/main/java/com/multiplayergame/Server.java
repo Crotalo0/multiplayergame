@@ -105,7 +105,7 @@ public class Server {
     }
   }
 
-  private void matchClientsTic(Queue<Socket> queue) {
+  private void matchClientsTic(Queue<Socket> queue ) {
     synchronized (queueLockTic) {
       if (queue.size() >= 2) {
         Socket client1 = queue.poll();
@@ -143,7 +143,7 @@ public class Server {
 
       //TODO: After one round, make that player 1 gets X and plays for second
       while (true) {
-        if (!game.playRound()) {
+        if (game.gameLoop()) {
           break;
         }
       }
@@ -165,7 +165,7 @@ public class Server {
       game.getOut2().println("You have been matched with a partner. You are player 2.");
 
       while (true) {
-        if (!game.playRound()) {
+        if (game.gameLoop()) {
           break;
         }
       }
