@@ -37,7 +37,7 @@ public class RockPaperScissors extends GameSocket {
 
   public String determineOutcome(String player1Choice, String player2Choice, int[] points) {
     if (player1Choice.equalsIgnoreCase(player2Choice)) {
-      return "Tie";
+      return TIE;
     }
     String key = player1Choice.toUpperCase() + "_" + player2Choice.toUpperCase();
     int winningPlayer = outcomePointsMap.getOrDefault(key, -1);
@@ -49,23 +49,23 @@ public class RockPaperScissors extends GameSocket {
     return result;
   }
 
-  public boolean playRound() throws IOException {
+  public boolean gameLoop() throws IOException {
     out2.println("Wait for player 1");
     String choice1 = getPlayerChoice(in1, out1);
     if (choice1 == null) {
       out2.println("Player 1 has quit the session. Restart the client.");
-      return false;
+      return true;
     }
     out1.println("Wait for player 2");
     String choice2 = getPlayerChoice(in2, out2);
     if (choice2 == null) {
       out1.println("Player 2 has quit the session. Restart the client");
-      return false;
+      return true;
     }
     String outcome = determineOutcome(choice1, choice2, points);
     sendMessageToBothClients("Game outcome: " + outcome);
     sendMessageToBothClients("POINTS: player1->" + points[0] + " - player2->" + points[1]);
-    return true;
+    return false;
   }
 
   private String getPlayerChoice(BufferedReader in, PrintWriter out) throws IOException {
