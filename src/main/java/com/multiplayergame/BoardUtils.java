@@ -1,9 +1,11 @@
 package com.multiplayergame;
 
+import com.multiplayergame.games.battleship.Player;
+
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BoardUtils {
   private BoardUtils() {
@@ -59,6 +61,13 @@ public class BoardUtils {
 
   public static boolean isInGrid(List<List<String>> grid, Integer xPos, Integer yPos) {
     return !( xPos > grid.size() || yPos > grid.size() || xPos < 0 || yPos < 0 );
+  }
+
+  public static void printBoardsShip(PrintWriter out1, PrintWriter out2, Player player1, Player player2) {
+    out1.println(BoardUtils.gridAsString(player1.getPlayerBoard().getBoard()));
+    out1.println(BoardUtils.gridAsString(player1.getEnemyBoard().getBoard()));
+    out2.println(BoardUtils.gridAsString(player2.getPlayerBoard().getBoard()));
+    out2.println(BoardUtils.gridAsString(player2.getEnemyBoard().getBoard()));
   }
 
 }

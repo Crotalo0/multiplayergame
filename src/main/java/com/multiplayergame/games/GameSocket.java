@@ -22,6 +22,8 @@ public abstract class GameSocket {
   protected int[] points = new int[] {0, 0};
   protected Socket client1;
   protected Socket client2;
+  protected String outcome;
+  protected boolean error;
 
   protected GameSocket(Socket client1, Socket client2) throws IOException {
     this.client1 = client1;

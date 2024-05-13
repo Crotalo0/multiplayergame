@@ -8,13 +8,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TicTacToe extends GameSocket {
 
   List<String> choices = Arrays.asList("00", "01", "02", "10", "11", "12", "20", "21", "22");
-  private String outcome;
-  private boolean error;
   private Integer totalMoves = 0;
   private List<List<String>> grid;
   private Integer roundNumber = 1;

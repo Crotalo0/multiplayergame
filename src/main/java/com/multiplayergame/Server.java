@@ -1,6 +1,7 @@
 package com.multiplayergame;
 
 import com.multiplayergame.games.GameSocket;
+import com.multiplayergame.games.battleship.BattleShip;
 import com.multiplayergame.games.rockpaperscissors.RockPaperScissors;
 import com.multiplayergame.games.tictactoe.TicTacToe;
 import java.io.*;
@@ -20,9 +21,11 @@ public class Server {
   private final Object queueLockRps = new Object();
   private final Object queueLockTic = new Object();
   private final Object queueLockChat = new Object();
+  private final Object queueLockBat = new Object();
   private final Queue<Socket> clientsRps = new ConcurrentLinkedQueue<>();
   private final Queue<Socket> clientsTic = new ConcurrentLinkedQueue<>();
   private final Queue<Socket> clientsChat = new ConcurrentLinkedQueue<>();
+  private final Queue<Socket> clientsBat = new ConcurrentLinkedQueue<>();
 
   public Server(int port) throws IOException {
     this.serverSocket = new ServerSocket(port);
@@ -59,16 +62,24 @@ public class Server {
   private void handleClientConnection(Socket clientSocket) {
     try {
       PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-      out.println("Select what to do (1-Rps, 2-Tic, 3-Chat)");
+      out.println("Select what to do (0-Bat, 1-Rps, 2-Tic, 3-Chat)");
 
       BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
       String s = in.readLine();
 
       switch (s) {
+        case "0":
+          clientsBat.add(clientSocket);
+          out.println(
+              "Entered queue for Battleship. player in queue: " + clientsBat.size()
+          );
+          matchClients(clientsBat, queueLockBat, this::handleMatchedClientsBattleship);
+          break;
         case "1":
           clientsRps.add(clientSocket);
           out.println(
-              "Entered queue for Rock paper scissors. player in queue: " + clientsRps.size());
+              "Entered queue for Rock paper scissors. player in queue: " + clientsRps.size()
+          );
           matchClients(clientsRps, queueLockRps, this::handleMatchedClientsRockPaperScissors);
           break;
         case "2":
@@ -124,6 +135,13 @@ public class Server {
     } finally {
       LOG.info("Game finished, connection cleared");
       Utils.cleanUpConnections(client1, client2);
+    }
+  }
+  private void handleMatchedClientsBattleship(Socket client1, Socket client2) {
+    try {
+      handleGameMatchedClients(client1, client2, new BattleShip(client1, client2));
+    } catch (IOException e) {
+      throw new IllegalArgumentException(e);
     }
   }
 
