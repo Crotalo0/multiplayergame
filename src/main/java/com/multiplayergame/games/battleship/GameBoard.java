@@ -24,11 +24,6 @@ public class GameBoard {
   }
 
   // If returns false something has gone wrong inserting the ship
-  // The pivot point is the upper corner when vertical and left when horizontal
-  // o++++>;
-  // o
-  // +
-  // v
   public boolean insertShip(Ship ship) {
     if (!BoardUtils.isInGrid(board, ship.xPos, ship.yPos) || !BoardUtils.isInGrid(board, ship.xEndPos, ship.yEndPos)) {
       return false;
