@@ -1,5 +1,6 @@
 package com.multiplayergame.games.tictactoe;
 
+import com.multiplayergame.BoardUtils;
 import com.multiplayergame.games.GameSocket;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +21,7 @@ public class TicTacToe extends GameSocket {
 
   public TicTacToe(Socket client1, Socket client2) throws IOException {
     super(client1, client2);
-    grid = createGrid();
+    grid = BoardUtils.createBoard(3,3);
   }
 
   @Override
@@ -32,7 +33,7 @@ public class TicTacToe extends GameSocket {
       sendMessageToBothClients("Game outcome: " + outcome);
       sendMessageToBothClients("POINTS: player1->" + points[0] + " - player2->" + points[1]);
 
-      this.grid = createGrid();
+      this.grid = BoardUtils.createBoard(3, 3);
       roundNumber++;
       totalMoves = 0;
 
@@ -55,7 +56,7 @@ public class TicTacToe extends GameSocket {
         error = true;
         return false;
       }
-      setCell(choice1, "O");
+      BoardUtils.setCell(grid, choice1, "O");
     } else {
       out1.println("Wait for player2");
       choice1 = getPlayerChoice(in2, out2);
@@ -64,10 +65,10 @@ public class TicTacToe extends GameSocket {
         error = true;
         return false;
       }
-      setCell(choice1, "X");
+      BoardUtils.setCell(grid, choice1, "X");
     }
     this.totalMoves++;
-    sendMessageToBothClients(gridAsString(grid));
+    sendMessageToBothClients(BoardUtils.gridAsString(grid));
     if (playerWonOrTie(roundNumber)) return false;
 
     // PLAYER 2
@@ -80,7 +81,7 @@ public class TicTacToe extends GameSocket {
         error = true;
         return false;
       }
-      setCell(choice2, "X");
+      BoardUtils.setCell(grid, choice2, "X");
     } else {
       out2.println("Wait for player1");
       choice2 = getPlayerChoice(in1, out1);
@@ -89,44 +90,44 @@ public class TicTacToe extends GameSocket {
         error = true;
         return false;
       }
-      setCell(choice2, "O");
+      BoardUtils.setCell(grid, choice2, "O");
     }
     this.totalMoves++;
-    sendMessageToBothClients(gridAsString(grid));
+    sendMessageToBothClients(BoardUtils.gridAsString(grid));
     return (!playerWonOrTie(roundNumber));
   }
 
   // WIN LOGIC
   private boolean checkForTris() {
     boolean row =
-        (!"_".equals(getCell("00"))
-                && getCell("00").equals(getCell("01"))
-                && getCell("00").equals(getCell("02")))
-            || (!"_".equals(getCell("10"))
-                && getCell("10").equals(getCell("11"))
-                && getCell("10").equals(getCell("12")))
-            || (!"_".equals(getCell("20"))
-                && getCell("20").equals(getCell("21"))
-                && getCell("20").equals(getCell("22")));
+        (!"_".equals(BoardUtils.getCell(grid, "00"))
+                && BoardUtils.getCell(grid,"00").equals(BoardUtils.getCell(grid, "01"))
+                && BoardUtils.getCell(grid,"00").equals(BoardUtils.getCell(grid,"02")))
+            || (!"_".equals(BoardUtils.getCell(grid,"10"))
+                && BoardUtils.getCell(grid,"10").equals(BoardUtils.getCell(grid,"11"))
+                && BoardUtils.getCell(grid,"10").equals(BoardUtils.getCell(grid,"12")))
+            || (!"_".equals(BoardUtils.getCell(grid,"20"))
+                && BoardUtils.getCell(grid,"20").equals(BoardUtils.getCell(grid,"21"))
+                && BoardUtils.getCell(grid,"20").equals(BoardUtils.getCell(grid,"22")));
 
     boolean column =
-        (!"_".equals(getCell("00"))
-                && getCell("00").equals(getCell("10"))
-                && getCell("00").equals(getCell("20")))
-            || (!"_".equals(getCell("01"))
-                && getCell("01").equals(getCell("11"))
-                && getCell("01").equals(getCell("21")))
-            || (!"_".equals(getCell("02"))
-                && getCell("02").equals(getCell("12"))
-                && getCell("02").equals(getCell("22")));
+        (!"_".equals(BoardUtils.getCell(grid, "00"))
+                && BoardUtils.getCell(grid, "00").equals(BoardUtils.getCell(grid, "10"))
+                && BoardUtils.getCell(grid, "00").equals(BoardUtils.getCell(grid, "20")))
+            || (!"_".equals(BoardUtils.getCell(grid, "01"))
+                && BoardUtils.getCell(grid, "01").equals(BoardUtils.getCell(grid, "11"))
+                && BoardUtils.getCell(grid, "01").equals(BoardUtils.getCell(grid, "21")))
+            || (!"_".equals(BoardUtils.getCell(grid, "02"))
+                && BoardUtils.getCell(grid, "02").equals(BoardUtils.getCell(grid, "12"))
+                && BoardUtils.getCell(grid, "02").equals(BoardUtils.getCell(grid, "22")));
 
     boolean diagonal =
-        (!"_".equals(getCell("00"))
-                && getCell("00").equals(getCell("11"))
-                && getCell("00").equals(getCell("22")))
-            || (!"_".equals(getCell("02"))
-                && getCell("02").equals(getCell("11"))
-                && getCell("02").equals(getCell("20")));
+        (!"_".equals(BoardUtils.getCell(grid, "00"))
+                && BoardUtils.getCell(grid, "00").equals(BoardUtils.getCell(grid, "11"))
+                && BoardUtils.getCell(grid, "00").equals(BoardUtils.getCell(grid, "22")))
+            || (!"_".equals(BoardUtils.getCell(grid, "02"))
+                && BoardUtils.getCell(grid, "02").equals(BoardUtils.getCell(grid, "11"))
+                && BoardUtils.getCell(grid, "02").equals(BoardUtils.getCell(grid, "20")));
 
     return row || column || diagonal;
   }
@@ -174,43 +175,15 @@ public class TicTacToe extends GameSocket {
       return false;
     }
     String emptyCell = "_";
-    if (!emptyCell.equals(getCell(posStr))) {
+    if (!emptyCell.equals(BoardUtils.getCell(grid, posStr))) {
       LOG.error("ERROR: occupied cell");
       return false;
     }
-    List<Integer> pos = getArrayPosFromString(posStr);
+    List<Integer> pos = BoardUtils.getArrayPosFromString(posStr);
     if (pos.get(0) > 2 || pos.get(0) < 0 || pos.get(1) > 2 || pos.get(1) < 0) {
       LOG.error("ERROR: out of bound 2");
       return false;
     }
     return true;
-  }
-
-  // GRID UTILS
-  private List<List<String>> createGrid() {
-    grid.add(Arrays.asList("_", "_", "_"));
-    grid.add(Arrays.asList("_", "_", "_"));
-    grid.add(Arrays.asList("_", "_", "_"));
-    return grid;
-  }
-
-  private void setCell(String posStr, String player) {
-    List<Integer> pos = getArrayPosFromString(posStr);
-    grid.get(pos.get(0)).set(pos.get(1), player);
-  }
-
-  private String getCell(String posStr) {
-    List<Integer> pos = getArrayPosFromString(posStr);
-    return grid.get(pos.get(0)).get(pos.get(1));
-  }
-
-  public String gridAsString(List<List<String>> grid) {
-    return grid.stream().map(row -> row + " " + "\n").collect(Collectors.joining());
-  }
-
-  private List<Integer> getArrayPosFromString(String posStr) {
-    return Arrays.asList(
-        Integer.parseInt(String.valueOf(posStr.charAt(0))),
-        Integer.parseInt(String.valueOf(posStr.charAt(1))));
   }
 }
