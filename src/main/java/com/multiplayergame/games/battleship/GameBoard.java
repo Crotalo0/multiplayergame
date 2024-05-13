@@ -16,7 +16,7 @@ public class GameBoard {
     System.out.println(test);
     String board = BoardUtils.gridAsString(gb.getBoard());
     System.out.println(board);
-    Ship ship2 = new Ship("test", 5, 4, 3, true);
+    Ship ship2 = new Ship("test", 5, 3, 3, true);
     boolean test2 = gb.insertShip(ship2);
     System.out.println(test2);
     String board2 = BoardUtils.gridAsString(gb.getBoard());
@@ -41,9 +41,9 @@ public class GameBoard {
         }
       }
       for (int j = ship.yPos + 1; j < ship.yEndPos; j++) {
-        board.get(j).set(ship.xPos, "+");
+        board.get(j).set(ship.xPos, "o");
       }
-      board.get(ship.yPos).set(ship.xPos, "o");
+      board.get(ship.yPos).set(ship.xPos, "^");
       board.get(ship.yEndPos).set(ship.xEndPos, "v");
     } else {
       List<String> row = board.get(ship.yPos);
@@ -53,9 +53,9 @@ public class GameBoard {
         }
       }
       for (int i = ship.xPos + 1; i <= ship.xEndPos - 1; i++) {
-        row.set(i, "+");
+        row.set(i, "o");
       }
-      row.set(ship.xPos, "o");
+      row.set(ship.xPos, "<");
       row.set(ship.xEndPos, ">");
     }
     return true;
