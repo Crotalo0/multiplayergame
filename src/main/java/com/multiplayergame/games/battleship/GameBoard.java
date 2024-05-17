@@ -9,36 +9,6 @@ public class GameBoard {
 
   protected List<List<String>> board = BoardUtils.createBoard(8,8);
 
-  public static void main(String[] args){
-    GameBoard gb = new GameBoard();
-
-    Ship ship = new Ship("test", 4);
-    ship.setXPos(4);
-    ship.setYPos(4);
-    ship.setVertical(false);
-    ship.initShip();
-
-    System.out.println(ship.getOccupiedCells());
-
-    Ship ship2 = new Ship("test", 5);
-    ship2.setXPos(3);
-    ship2.setYPos(3);
-    ship2.setVertical(true);
-    ship2.initShip();
-
-    System.out.println(ship2.getOccupiedCells());
-
-    boolean test = gb.insertShip(ship);
-    System.out.println(test);
-    boolean test2 = gb.insertShip(ship2);
-    System.out.println(test2);
-
-    String board = BoardUtils.gridAsString(gb.getBoard());
-    String board2 = BoardUtils.gridAsString(gb.getBoard());
-    System.out.println(board);
-    System.out.println(board2);
-  }
-
   // If returns false something has gone wrong inserting the ship
   public boolean insertShip(Ship ship) {
     if (!BoardUtils.isInGrid(board, ship.xPos, ship.yPos) || !BoardUtils.isInGrid(board, ship.xEndPos, ship.yEndPos)) {

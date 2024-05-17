@@ -50,9 +50,9 @@ public class Ship {
     for (int i = 0; i < this.size; i++) {
       StringBuilder pos = new StringBuilder(2);
       if (this.isVertical) {
-        pos.append(tempX).append(tempY+i);
-      } else {
         pos.append(tempX+i).append(tempY);
+      } else {
+        pos.append(tempX).append(tempY+i);
       }
       occupiedCells.add(pos.toString());
     }

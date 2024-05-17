@@ -10,7 +10,7 @@ import java.net.Socket;
 public class BattleShip extends GameSocket {
   protected Player player1;
   protected Player player2;
-  private Integer roundNumber = 1;
+  private Integer roundNumber = 0;
   protected InputHandler p1handler;
   protected InputHandler p2handler;
 
@@ -38,24 +38,49 @@ public class BattleShip extends GameSocket {
 
  @Override
   public boolean gameLoop() throws IOException {
-    //TODO: mock setup
-   player1.setShipPosition(ShipNames.CARRIER, 0,0, false);
-   player1.setShipPosition(ShipNames.BATTLESHIP, 1, 1, false);
-   player1.setShipPosition(ShipNames.CRUISER,2,2,false);
-   player1.setShipPosition(ShipNames.SUBMARINE,3,3,false);
+//   player1.setShipPosition(ShipNames.CARRIER, 0,0, false);
+//   player1.setShipPosition(ShipNames.BATTLESHIP, 1, 1, false);
+//   player1.setShipPosition(ShipNames.CRUISER,2,2,false);
+//   player1.setShipPosition(ShipNames.SUBMARINE,3,3,false);
    player1.setShipPosition(ShipNames.DESTROYER,4,4, false);
+
+//   player2.setShipPosition(ShipNames.CARRIER, 0,0, false);
+//   player2.setShipPosition(ShipNames.BATTLESHIP, 1, 1, false);
+//   player2.setShipPosition(ShipNames.CRUISER,2,2,false);
+//   player2.setShipPosition(ShipNames.SUBMARINE,3,3,false);
+   player2.setShipPosition(ShipNames.DESTROYER,4,4, false);
 
    // TODO: all players have to setups ships
 
    while (true) {
      if (!playOneRound()) break;
    }
-
    if (error) return true;
+   // TODO: set outcome and points
    sendMessageToBothClients("Game outcome: " + outcome);
    sendMessageToBothClients("POINTS: player1->" + points[0] + " - player2->" + points[1]);
 
-   // TODO: reset game state
+   // reset board
+//   player1.resetAll();
+//   player2.resetAll();
+   this.player1 = new Player("player1");
+   this.player2 = new Player("player2");
+
+   this.p1handler = new InputHandler(player1);
+   this.p2handler = new InputHandler(player2);
+
+   //   player1.setShipPosition(ShipNames.CARRIER, 0,0, false);
+//   player1.setShipPosition(ShipNames.BATTLESHIP, 1, 1, false);
+//   player1.setShipPosition(ShipNames.CRUISER,2,2,false);
+//   player1.setShipPosition(ShipNames.SUBMARINE,3,3,false);
+   player1.setShipPosition(ShipNames.DESTROYER,4,4, false);
+
+//   player2.setShipPosition(ShipNames.CARRIER, 0,0, false);
+//   player2.setShipPosition(ShipNames.BATTLESHIP, 1, 1, false);
+//   player2.setShipPosition(ShipNames.CRUISER,2,2,false);
+//   player2.setShipPosition(ShipNames.SUBMARINE,3,3,false);
+   player2.setShipPosition(ShipNames.DESTROYER,4,4, false);
+
    roundNumber++;
    return false;
   }
@@ -80,14 +105,14 @@ public class BattleShip extends GameSocket {
       if (inputInvalid(choice1, out2)) return false;
 
       player1.hitOrMiss(choice1, player2.getPlayerBoard().hasHit(choice1));
-      player2.calculateHit(choice1);
+      player2.calculateHit(choice1, player2.getPlayerBoard().hasHit(choice1));
     } else {
       out1.println("Wait for player2");
       choice1 = p2handler.getPlayerInput(in2, out2);
       if (inputInvalid(choice1, out1)) return false;
 
       player2.hitOrMiss(choice1, player1.getPlayerBoard().hasHit(choice1));
-      player1.calculateHit(choice1);
+      player1.calculateHit(choice1, player1.getPlayerBoard().hasHit(choice1));
     }
     BoardUtils.printBoardsShip(out1, out2, player1, player2);
     if (playerWon()) return false;
@@ -99,21 +124,31 @@ public class BattleShip extends GameSocket {
       choice2 = p2handler.getPlayerInput(in2, out2);
       if (inputInvalid(choice2, out1)) return false;
 
-      player2.hitOrMiss(choice2, player1.getPlayerBoard().hasHit(choice1));
-      player1.calculateHit(choice2);
+      player2.hitOrMiss(choice2, player1.getPlayerBoard().hasHit(choice2));
+      player1.calculateHit(choice2, player1.getPlayerBoard().hasHit(choice2));
     } else {
       out2.println("Wait for player1");
       choice2 = p1handler.getPlayerInput(in1, out1);
       if (inputInvalid(choice2, out2)) return false;
 
-      player1.hitOrMiss(choice2, player2.getPlayerBoard().hasHit(choice1));
-      player2.calculateHit(choice2);
+      player1.hitOrMiss(choice2, player2.getPlayerBoard().hasHit(choice2));
+      player2.calculateHit(choice2, player2.getPlayerBoard().hasHit(choice2));
     }
     BoardUtils.printBoardsShip(out1, out2, player1, player2);
     return (!playerWon());
   }
 
   private boolean playerWon() {
-    return player1.checkForLoss() || player2.checkForLoss();
+    if (player1.allShipSunk()) {
+      outcome = "Player2 has won";
+      points[1]++;
+      return true;
+    } else if (player2.allShipSunk()) {
+      outcome = "Player1 has won";
+      points[0]++;
+      return true;
+    }
+
+    return false;
   }
 }
