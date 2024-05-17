@@ -10,8 +10,8 @@ import java.util.List;
 public class Ship {
   protected String name;
   protected Integer size;
-  @Setter protected Integer xPos;
-  @Setter protected Integer yPos;
+  @Setter protected Integer colPosition;
+  @Setter protected Integer rowPosition;
   @Setter protected boolean isVertical;
   protected Integer xEndPos;
   protected Integer yEndPos;
@@ -36,23 +36,23 @@ public class Ship {
 
   private void calculateOtherVertexPosition() {
     if (this.isVertical) {
-      this.xEndPos = this.xPos;
-      this.yEndPos = this.yPos + this.size - 1;
+      this.xEndPos = this.colPosition;
+      this.yEndPos = this.rowPosition + this.size - 1;
     } else {
-      this.xEndPos = this.xPos + this.size - 1;
-      this.yEndPos = this.yPos;
+      this.xEndPos = this.colPosition + this.size - 1;
+      this.yEndPos = this.rowPosition;
     }
   }
 
   private void calculateOccupiedCells() {
-    Integer tempX = this.xPos;
-    Integer tempY = this.yPos;
+    Integer colTemp = this.colPosition;
+    Integer rowTemp = this.rowPosition;
     for (int i = 0; i < this.size; i++) {
       StringBuilder pos = new StringBuilder(2);
       if (this.isVertical) {
-        pos.append(tempX+i).append(tempY);
+        pos.append(colTemp+i).append(rowTemp);
       } else {
-        pos.append(tempX).append(tempY+i);
+        pos.append(colTemp).append(rowTemp+i);
       }
       occupiedCells.add(pos.toString());
     }
@@ -61,5 +61,13 @@ public class Ship {
   public void initShip(){
     this.calculateOccupiedCells();
     this.calculateOtherVertexPosition();
+  }
+
+  @Override
+  public String toString() {
+    return "Ship{" +
+        "name='" + name + '\'' +
+        ", size=" + size +
+        '}';
   }
 }

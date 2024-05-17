@@ -17,6 +17,22 @@ public class InputHandler {
     this.player = player;
   }
 
+  public String getPlayerShipPos(BufferedReader in, PrintWriter out, Player player)
+      throws IOException {
+    while (true) {
+      String pos = in.readLine();
+      if (pos.equalsIgnoreCase("QUIT")) {
+        out.println("You chose to quit. Ending the session.");
+        return null;
+      }
+      if (!pos.matches("[0-7][0-7][ny]")) {
+        out.println("Invalid pos (ex. 00y)");
+        return null;
+      }
+      return pos;
+    }
+  }
+
   public String getPlayerInput(BufferedReader in, PrintWriter out) throws IOException {
     while (true) {
       out.println("Your move (Input ex.: 01 (row 0 and column 1)");
@@ -34,16 +50,10 @@ public class InputHandler {
   }
 
   public boolean validMove(String posStr) {
-    if (!isValidPosition(posStr)) {
+    if (!posStr.matches("[0-7][0-7]")) {
       return false;
     }
     String cell = BoardUtils.getCell(player.getEnemyBoard().getBoard(), posStr);
     return "_".equals(cell);
-
-  }
-
-  private boolean isValidPosition(String posStr) {
-    // Check if the position string has the correct format (e.g., "01", "22", etc.)
-    return posStr.matches("[0-7][0-7]");
   }
 }

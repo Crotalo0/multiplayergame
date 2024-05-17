@@ -23,24 +23,28 @@ public class Player {
    }
 
   private void initShips() {
-//    ships.add(new Ship(ShipNames.CARRIER.getName(),ShipNames.CARRIER.getLength()));
-//    ships.add(new Ship(ShipNames.BATTLESHIP.getName(), ShipNames.BATTLESHIP.getLength()));
-//    ships.add(new Ship(ShipNames.CRUISER.getName(), ShipNames.CRUISER.getLength()));
-//    ships.add(new Ship(ShipNames.SUBMARINE.getName(), ShipNames.SUBMARINE.getLength()));
+    ships.add(new Ship(ShipNames.CARRIER.getName(),ShipNames.CARRIER.getLength()));
+    ships.add(new Ship(ShipNames.BATTLESHIP.getName(), ShipNames.BATTLESHIP.getLength()));
+    ships.add(new Ship(ShipNames.CRUISER.getName(), ShipNames.CRUISER.getLength()));
+    ships.add(new Ship(ShipNames.SUBMARINE.getName(), ShipNames.SUBMARINE.getLength()));
     ships.add(new Ship(ShipNames.DESTROYER.getName(), ShipNames.DESTROYER.getLength()));
   }
 
   // use in server to set position of all ships using in from clients
-  public void setShipPosition(ShipNames shipName, Integer x, Integer y, boolean vertical) {
+  public boolean setShipPosition(ShipNames shipName, Integer row, Integer col, boolean vertical) {
+    boolean isOk = true;
     for (Ship ship : ships) {
       if (shipName.getName().equals(ship.getName())) {
-        ship.setXPos(x);
-        ship.setYPos(y);
+        ship.setRowPosition(row);
+        ship.setColPosition(col);
         ship.setVertical(vertical);
         ship.initShip();
-        playerBoard.insertShip(ship);
+        if (!playerBoard.insertShip(ship)) {
+          isOk = false;
+        }
       }
     }
+    return isOk;
   }
   public void hitOrMiss(String posStr, boolean hit) {
     String value = hit ? "%" : "x";
@@ -64,6 +68,11 @@ public class Player {
         ship.recordHit();
       }
     }
+  }
+
+  public void resetBoards() {
+    this.playerBoard = new GameBoard();
+    this.enemyBoard = new EnemyBoard();
   }
 
 }
