@@ -17,7 +17,7 @@ public class InputHandler {
     this.player = player;
   }
 
-  public String getPlayerShipPos(BufferedReader in, PrintWriter out, Player player)
+  public String getPlayerShipPos(BufferedReader in, PrintWriter out)
       throws IOException {
     while (true) {
       String pos = in.readLine();

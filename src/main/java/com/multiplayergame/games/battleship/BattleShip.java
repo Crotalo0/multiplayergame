@@ -88,8 +88,11 @@ public class BattleShip extends GameSocket {
       out.println(BoardUtils.gridAsString(player.getPlayerBoard().getBoard()));
       while (true) {
         out.println("Place ship(" + ship.toString() + ")");
-        String pos = ph.getPlayerShipPos(in, out, player);
-
+        String pos = ph.getPlayerShipPos(in, out);
+        if (pos == null) {
+          out.println("Invalid input");
+          continue;
+        }
         Integer x = Character.getNumericValue(pos.charAt(0));
         Integer y = Character.getNumericValue(pos.charAt(1));
         boolean orientation = pos.charAt(2) == 'y';
