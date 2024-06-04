@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.multiplayergame</groupId>
-	<artifactId>game</artifactId>
+	<artifactId>multiplayergame</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>game</name>
+	<name>multiplayergame</name>
 	<description>multiplayer game demo app</description>
 
 	<properties>
